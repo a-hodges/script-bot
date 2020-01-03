@@ -13,10 +13,6 @@ from contextlib import closing
 
 import discord
 from discord.ext import commands
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-import model as m
 
 bot = commands.Bot(
     command_prefix=";",
@@ -35,23 +31,6 @@ async def on_ready():
     print("------")
     game = "Type `;help` for command list"
     await bot.change_presence(activity=discord.Game(name=game))
-
-
-@bot.before_invoke
-async def before_any_command(ctx):
-    """
-    Set up database connection
-    """
-    ctx.session = bot.Session()
-
-
-@bot.after_invoke
-async def after_any_command(ctx):
-    """
-    Tear down database connection
-    """
-    ctx.session.close()
-    ctx.session = None
 
 
 @bot.event
@@ -98,46 +77,19 @@ async def on_command_error(ctx, error: Exception):
 # ----#-   Commands
 
 
-prefix = __name__ + ".cogs."
-for extension in [
-]:
-    bot.load_extension(prefix + extension)
+# ...
 
 
 # ----#-
 
 
-def main(database: str):
-    bot.config = OrderedDict([
-        ("token", None),
-    ])
-
-    engine = create_engine(database)
-    m.Base.metadata.create_all(engine)
-    bot.Session = sessionmaker(bind=engine)
-    with closing(bot.Session()) as session:
-        for name in bot.config:
-            key = session.query(m.Config).get(name)
-            if key is not None:
-                bot.config[name] = key.value
-            else:
-                key = m.Config(name=name, value=bot.config[name])
-                session.add(key)
-                session.commit()
-
-            if False:
-                arg = input("[{}] (default: {}): ".format(name, repr(key.value)))
-                if arg:
-                    key.value = arg
-                    bot.config[name] = arg
-                    session.commit()
-
-    bot.run(bot.config["token"])
+def main(token: str):
+    bot.run(token)
 
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-d', dest='database_url', required=True, help='database url')
+    parser.add_argument('-t', dest='token', required=True, help='Disocrd bot token')
     args = parser.parse_args()
-    main(args.database_url)
+    main(args.token)

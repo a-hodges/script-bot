@@ -2,7 +2,3 @@
 
 # Special discord version
 discord.py ~= 1.2.5
-
-# database
-sqlalchemy ~= 1.3.12
-psycopg2-binary ~= 2.8.4
