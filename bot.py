@@ -16,7 +16,7 @@ from discord.ext import commands
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from . import model as m
+import model as m
 
 bot = commands.Bot(
     command_prefix=";",
