@@ -77,7 +77,9 @@ async def on_command_error(ctx, error: Exception):
 # ----#-   Commands
 
 
-# ...
+@bot.command()
+async def ping(ctx):
+    await ctx.send('Ping time (ms): {0}'.format(round(bot.latency * 1000)))
 
 
 # ----#-
