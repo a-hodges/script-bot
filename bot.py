@@ -36,6 +36,7 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, error: Exception):
     unknown = False
+    message = None
     if (isinstance(error, commands.CommandInvokeError)):
         error = error.original
 
@@ -43,13 +44,10 @@ async def on_command_error(ctx, error: Exception):
             and str(error) == "'NoneType' object has no attribute 'id'"):
         message = "This command can only be used in a server"
 
+    elif isinstance(error, commands.CommandNotFound):
+        pass
     elif isinstance(error, commands.CheckFailure):
         message = "Error: You do not meet the requirements to use this command"
-    elif isinstance(error, commands.CommandNotFound):
-        if error.args:
-            message = error.args[0]
-        else:
-            message = "Error: command not found"
     elif isinstance(error, commands.BadArgument):
         message = "{}\nSee the help text for valid parameters".format(error)
     elif isinstance(error, commands.MissingRequiredArgument):
@@ -67,8 +65,9 @@ async def on_command_error(ctx, error: Exception):
         message = "Error: {}".format(error)
         unknown = True
 
-    embed = discord.Embed(description=message, color=discord.Color.red())
-    await ctx.send(embed=embed)
+    if message is not None:
+        embed = discord.Embed(description=message, color=discord.Color.red())
+        await ctx.send(embed=embed)
 
     if unknown:
         raise error
