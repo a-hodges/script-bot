@@ -29,7 +29,7 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print("------")
-    game = "Type `;help` for command list"
+    game = "Type `{}help` for command list".format(bot.command_prefix)
     await bot.change_presence(activity=discord.Game(name=game))
 
 
