@@ -115,7 +115,7 @@ async def ping(ctx):
     await ctx.send('`Ping time (ms): {0}`'.format(round(ctx.bot.latency * 1000)))
 
 
-pattern = re.compile(r"(?:(\d+|r|R)\|)?(.+)")
+pattern = re.compile(r"(?:(\d+|r|R)\|)?(.*)")
 default_delay = '1'
 
 
@@ -139,7 +139,8 @@ async def run_script(ctx, lines, tts=False):
                 else:
                     await asyncio.sleep(int(delay))
 
-                await ctx.send(text, tts=tts)
+                if text:
+                    await ctx.send(text, tts=tts)
             i += 1
         await asyncio.sleep(3)
 
