@@ -115,7 +115,7 @@ async def ping(ctx):
     await ctx.send('`Ping time (ms): {0}`'.format(round(ctx.bot.latency * 1000)))
 
 
-pattern = re.compile(r"(?:(\d+|r)\|)?(.+)")
+pattern = re.compile(r"(?:(\d+|r|R)\|)?(.+)")
 default_delay = '1'
 
 
