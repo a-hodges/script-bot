@@ -186,6 +186,14 @@ async def list(ctx):
     await ctx.send(', '.join(keys))
 
 
+@bot.command()
+async def emoji(ctx, emoji: discord.Emoji):
+    await ctx.send(':{}:{}'.format(emoji.name, emoji.id))
+    if not emoji.is_usable():
+        await ctx.send('Unavailable')
+    await ctx.send(emoji.url)
+
+
 # ----#-   Run
 
 if __name__ == "__main__":
