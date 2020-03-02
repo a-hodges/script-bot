@@ -166,7 +166,7 @@ async def script(ctx, *script: str):
 
     key = context_key(ctx)
     if key not in tasks:
-        tasks[key] = bot.loop.create_task(run_script(ctx, lines, bool(tts)))
+        tasks[key] = bot.loop.create_task(run_script(ctx, lines))
     else:
         await ctx.send('`Already running a script`')
 
