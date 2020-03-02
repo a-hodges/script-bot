@@ -19,6 +19,12 @@ bot = commands.Bot(
     description=__doc__,
     loop=asyncio.new_event_loop())
 
+tasks = {}
+
+
+def context_key(ctx):
+    return (ctx.guild.id, ctx.channel.id)
+
 
 # ----#-   Events
 
@@ -113,21 +119,9 @@ pattern = re.compile(r"(?:(\d+|r)\|)?(.+)")
 default_delay = '1'
 
 
-@bot.command()
-async def script(ctx, *script):
+async def run_script(ctx, lines):
     def check(m):
         return m.channel == ctx.channel and m.author == ctx.author
-
-    script = '_'.join(script).lower()
-    lines = ctx.conn.hget('scripts', script)
-
-    if lines is None:
-        await ctx.send('No script named: `{}`'.format(script))
-        return
-
-    lines = lines.decode(encoding='utf-8')
-    lines = lines.replace('\r\n', '\n')
-    lines = lines.split('\n')
 
     l = len(lines)
     i = 0
@@ -147,7 +141,42 @@ async def script(ctx, *script):
                 await ctx.send(text, tts=True)
             i += 1
         await asyncio.sleep(5)
+
+    key = context_key(ctx)
+    tasks.pop(key, None)
+    
     await ctx.send('``` ```')
+
+
+@bot.command()
+async def script(ctx, *script):
+    script = '_'.join(script).lower()
+    lines = ctx.conn.hget('scripts', script)
+
+    if lines is None:
+        await ctx.send('No script named: `{}`'.format(script))
+        return
+
+    lines = lines.decode(encoding='utf-8')
+    lines = lines.replace('\r\n', '\n')
+    lines = lines.split('\n')
+
+    key = context_key(ctx)
+    if key not in tasks:
+        tasks[key] = bot.loop.create_task(run_script(ctx, lines))
+    else:
+        await ctx.send('`Already running a script`')
+
+
+@bot.command()
+async def cancel(ctx):
+    key = context_key(ctx)
+    task = tasks.pop(key, None)
+    if task is not None:
+        task.cancel()
+        await ctx.send('`Cancelled`')
+    else:
+        await ctx.send('`Nothing to cancel`')
 
 
 # ----#-   Run
