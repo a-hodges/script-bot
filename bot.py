@@ -46,6 +46,7 @@ async def on_ready():
 async def on_command_error(ctx, error: Exception):
     unknown = False
     message = None
+    tasks.pop(context_key(ctx), None)
     if (isinstance(error, commands.CommandInvokeError)):
         error = error.original
 
@@ -142,8 +143,7 @@ async def run_script(ctx, lines):
             i += 1
         await asyncio.sleep(5)
 
-    key = context_key(ctx)
-    tasks.pop(key, None)
+    tasks.pop(context_key(ctx), None)
     
     await ctx.send('``` ```')
 
@@ -170,8 +170,7 @@ async def script(ctx, *script):
 
 @bot.command()
 async def cancel(ctx):
-    key = context_key(ctx)
-    task = tasks.pop(key, None)
+    task = tasks.pop(context_key(ctx), None)
     if task is not None:
         task.cancel()
         await ctx.send('`Cancelled`')
