@@ -51,25 +51,25 @@ async def on_command_error(ctx, error: Exception):
         error = error.original
 
     # server command used in DMs
-    if (isinstance(error, AttributeError) and ctx.guild is None and str(error) == "'NoneType' object has no attribute 'id'"):
-        message = "This command can only be used in a server"
+    if (isinstance(error, AttributeError) and ctx.guild is None and str(error) == "`'NoneType' object has no attribute 'id'`"):
+        message = "`This command can only be used in a server`"
 
     # command invocation errors
     elif isinstance(error, commands.CommandNotFound):
         pass
     elif isinstance(error, commands.CheckFailure):
-        message = "Error: You do not meet the requirements to use this command"
+        message = "`Error: You do not meet the requirements to use this command`"
     elif isinstance(error, commands.BadArgument):
-        message = "{}\nSee the help text for valid parameters".format(error)
+        message = "`{}\nSee the help text for valid parameters`".format(error)
     elif isinstance(error, commands.MissingRequiredArgument):
-        message = "Missing parameter: {}\nSee the help text for valid parameters".format(error.param)
+        message = "`Missing parameter: {}\nSee the help text for valid parameters`".format(error.param)
     elif isinstance(error, commands.TooManyArguments):
-        message = "Too many parameters\nSee the help text for valid parameters"
+        message = "`Too many parameters\nSee the help text for valid parameters`"
     elif isinstance(error, ValueError):
         if error.args:
-            message = "Invalid parameter: {}".format(error.args[0])
+            message = "`Invalid parameter: {}`".format(error.args[0])
         else:
-            message = "Invalid parameter"
+            message = "`Invalid parameter`"
 
     # no response to bot, close the script
     elif isinstance(error, asyncio.TimeoutError):
@@ -77,7 +77,7 @@ async def on_command_error(ctx, error: Exception):
 
     # misc errors
     else:
-        message = "Error: {}".format(error)
+        message = "`Error: {}`".format(error)
         unknown = True
 
     if message is not None:
@@ -113,7 +113,7 @@ async def after_any_command(ctx):
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send('Ping time (ms): {0}'.format(round(ctx.bot.latency * 1000)))
+    await ctx.send('`Ping time (ms): {0}`'.format(round(ctx.bot.latency * 1000)))
 
 
 pattern = re.compile(r"(?:(\d+|r)\|)?(.+)")
@@ -154,7 +154,7 @@ async def script(ctx, *script):
     lines = ctx.conn.hget('scripts', script)
 
     if lines is None:
-        await ctx.send('No script named: `{}`'.format(script))
+        await ctx.send('`No script named: {}`'.format(script))
         return
 
     lines = lines.decode(encoding='utf-8')
