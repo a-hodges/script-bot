@@ -130,7 +130,9 @@ async def run_script(ctx, lines, tts=False):
             match = pattern.match(lines[i])
             if match is not None:
                 delay, text = match.groups()
-                if delay is None:
+                if delay is None and not text:
+                    delay = "0"
+                elif delay is None:
                     delay = default_delay
 
                 if delay.lower() == 'r':
