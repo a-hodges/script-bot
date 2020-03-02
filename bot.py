@@ -135,6 +135,7 @@ async def run_script(ctx, lines, tts=False):
 
                 if delay.lower() == 'r':
                     await ctx.bot.wait_for('message', check=check, timeout=5*60)
+                    await asyncio.sleep(int(default_delay))
                 else:
                     await asyncio.sleep(int(delay))
 
