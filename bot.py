@@ -69,8 +69,6 @@ async def on_command_error(ctx, error: Exception):
         message = '``` ```'
 
     # misc errors
-    elif isinstance(error, Exception):
-        message = "Error: {}".format(error)
     else:
         message = "Error: {}".format(error)
         unknown = True
@@ -112,6 +110,7 @@ async def ping(ctx):
 
 
 pattern = re.compile(r"(?:(\d+|r)\|)?(.+)")
+default_delay = '1'
 
 
 @bot.command()
@@ -123,15 +122,17 @@ async def script(ctx, *script):
         await ctx.send('No script named: `{}`'.format(script))
         return
 
-    lines = lines.replace('\r\n', '\n').split('\n')
+    lines = lines.decode(encoding='utf-8')
+    lines = lines.replace('\r\n', '\n')
+    lines = lines.split('\n')
 
     l = len(lines)
     i = 0
     async with ctx.typing():
         while i < l:
-            delay, text = pattern.match(lines[i])
+            delay, text = pattern.match(lines[i]).groups()
             if delay is None:
-                delay = 3
+                delay = default_delay
 
             if delay.lower() == 'r':
                 def check(m):
@@ -144,6 +145,7 @@ async def script(ctx, *script):
 
             await ctx.send(text, tts=True)
             i += 1
+        await asyncio.sleep(int(default_delay))
     await ctx.send('``` ```')
 
 
