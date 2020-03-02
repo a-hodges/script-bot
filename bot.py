@@ -130,6 +130,10 @@ async def run_script(ctx, lines):
             match = pattern.match(lines[i])
             if match is not None:
                 delay, text = match.groups()
+
+                if text:
+                    await ctx.send(text, tts=False)
+
                 if delay is None and not text:
                     delay = "0"
                 elif delay is None:
@@ -141,10 +145,7 @@ async def run_script(ctx, lines):
                 else:
                     await asyncio.sleep(int(delay))
 
-                if text:
-                    await ctx.send(text, tts=False)
             i += 1
-        await asyncio.sleep(3)
 
     tasks.pop(context_key(ctx), None)
 
