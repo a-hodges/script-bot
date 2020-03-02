@@ -63,7 +63,7 @@ async def on_command_error(ctx, error: Exception):
             message = "Invalid parameter: {}".format(error.args[0])
         else:
             message = "Invalid parameter"
-    
+
     # no response to bot, close the script
     elif isinstance(error, asyncio.TimeoutError):
         message = '``` ```'
@@ -91,7 +91,7 @@ async def before_any_command(ctx):
     '''
     Set up database connection
     '''
-    ctx.database = redis.Redis(connection_pool=ctx.bot.pool)
+    ctx.conn = redis.Redis(connection_pool=ctx.bot.pool)
 
 
 @bot.after_invoke
@@ -99,8 +99,8 @@ async def after_any_command(ctx):
     '''
     Tear down database connection
     '''
-    ctx.database.close()
-    ctx.database = None
+    ctx.conn.close()
+    ctx.conn = None
 
 
 # ----#-   Commands
@@ -116,10 +116,15 @@ pattern = re.compile(r"(?:(\d+|r)\|)?(.+)")
 
 @bot.command()
 async def script(ctx, *script):
-    script = '_'.join(script).lower() + '.md'
-    with open(script, 'r') as f:
-        lines = f.readlines()
-    
+    script = '_'.join(script).lower()
+    lines = ctx.conn.hget('scripts', script)
+
+    if lines is None:
+        await ctx.send('No script named: `{}`'.format(script))
+        return
+
+    lines = lines.replace('\r\n', '\n').split('\n')
+
     l = len(lines)
     i = 0
     async with ctx.typing():
@@ -154,7 +159,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     bot.command_prefix = args.prefix
 
-    pool = redis.ConnectionPool(host='localhost', port=6379, db=0)  # use args.database?
-    bot.database = pool
+    match = re.match(r"redis://h:(\w+)@(.+?):(\d+)", args.database)
+    password, hostname, port = match.groups()
+    pool = redis.ConnectionPool(host=hostname, port=int(port), password=password)
+    bot.pool = pool
 
     bot.run(args.token)
