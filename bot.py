@@ -87,7 +87,6 @@ async def on_command_error(ctx, error: Exception):
         raise error
 
 
-
 # ----#-   Context
 
 
@@ -148,7 +147,7 @@ async def run_script(ctx, lines):
     await ctx.send('``` ```')
 
 
-@bot.command()
+@bot.group(invoke_without_command=True)
 async def script(ctx, *script):
     script = '_'.join(script).lower()
     lines = ctx.conn.hget('scripts', script)
@@ -176,6 +175,15 @@ async def cancel(ctx):
         await ctx.send('`Cancelled`')
     else:
         await ctx.send('`Nothing to cancel`')
+
+
+@script.command('list')
+async def list(ctx):
+    keys = ctx.conn.hkeys('scripts')
+    keys = sorted(keys)
+    keys = [key.decode('utf-8').replace('_', ' ').title()
+            for key in keys]
+    await ctx.send(', '.join(keys))
 
 
 # ----#-   Run
