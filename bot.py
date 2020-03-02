@@ -147,7 +147,7 @@ async def script(ctx, *script):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-t', dest=token', required=True, help='Discord bot token')
+    parser.add_argument('-t', dest='token', required=True, help='Discord bot token')
     parser.add_argument('-p', dest='prefix', default=bot.command_prefix, help='Override command prefix')
     parser.add_argument('-d', dest='database', help='Redis connection string')
 
