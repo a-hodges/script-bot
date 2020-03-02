@@ -115,6 +115,9 @@ default_delay = '1'
 
 @bot.command()
 async def script(ctx, *script):
+    def check(m):
+        return m.channel == ctx.channel and m.author == ctx.author
+
     script = '_'.join(script).lower()
     lines = ctx.conn.hget('scripts', script)
 
@@ -130,20 +133,18 @@ async def script(ctx, *script):
     i = 0
     async with ctx.typing():
         while i < l:
-            delay, text = pattern.match(lines[i]).groups()
-            if delay is None:
-                delay = default_delay
+            match = pattern.match(lines[i])
+            if match is not None:
+                delay, text = match.groups()
+                if delay is None:
+                    delay = default_delay
 
-            if delay.lower() == 'r':
-                def check(m):
-                    return (m.content == 'hello'
-                            and m.channel == ctx.channel
-                            and m.author == ctx.author)
-                await ctx.bot.wait_for('message', check=check, timeout=5*60)
-            else:
-                await asyncio.sleep(int(delay))
+                if delay.lower() == 'r':
+                    await ctx.bot.wait_for('message', check=check, timeout=5*60)
+                else:
+                    await asyncio.sleep(int(delay))
 
-            await ctx.send(text, tts=True)
+                await ctx.send(text, tts=True)
             i += 1
         await asyncio.sleep(int(default_delay))
     await ctx.send('``` ```')
