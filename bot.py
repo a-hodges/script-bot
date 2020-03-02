@@ -119,7 +119,7 @@ pattern = re.compile(r"(?:(\d+|r|R)\|)?(.*)")
 default_delay = '1'
 
 
-async def run_script(ctx, lines, tts=False):
+async def run_script(ctx, lines):
     def check(m):
         return m.channel == ctx.channel and m.author == ctx.author
 
@@ -142,17 +142,18 @@ async def run_script(ctx, lines, tts=False):
                     await asyncio.sleep(int(delay))
 
                 if text:
-                    await ctx.send(text, tts=tts)
+                    await ctx.send(text, tts=False)
             i += 1
         await asyncio.sleep(3)
 
     tasks.pop(context_key(ctx), None)
-    
+
     await ctx.send('``` ```')
 
 
 @bot.group(invoke_without_command=True)
-async def script(ctx, script: str, tts=False):
+async def script(ctx, *script: str):
+    script = '_'.join(script).lower()
     lines = ctx.conn.hget('scripts', script)
 
     if lines is None:
