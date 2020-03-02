@@ -141,7 +141,7 @@ async def run_script(ctx, lines, tts=False):
 
                 await ctx.send(text, tts=tts)
             i += 1
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
 
     tasks.pop(context_key(ctx), None)
     
