@@ -146,7 +146,7 @@ async def script(ctx, *script):
 
                 await ctx.send(text, tts=True)
             i += 1
-        await asyncio.sleep(int(default_delay))
+        await asyncio.sleep(5)
     await ctx.send('``` ```')
 
 
