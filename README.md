@@ -1,2 +1,1 @@
-# hallway-bot
- 
+# script-bot

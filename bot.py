@@ -1,4 +1,4 @@
-"""Hotel Management Bot
+"""Script Bot
 
 Note:
 Any parameter value that has spaces in it needs to be wrapped in quotes "
@@ -8,16 +8,19 @@ Certain commands are only usable by administrators
 """
 
 import asyncio
-from collections import OrderedDict
-from contextlib import closing
+import re
 
 import discord
 from discord.ext import commands
+import redis
 
 bot = commands.Bot(
-    command_prefix=";",
+    command_prefix="!",
     description=__doc__,
     loop=asyncio.new_event_loop())
+
+
+# ----#-   Events
 
 
 @bot.event
@@ -40,10 +43,11 @@ async def on_command_error(ctx, error: Exception):
     if (isinstance(error, commands.CommandInvokeError)):
         error = error.original
 
-    if (isinstance(error, AttributeError) and ctx.guild is None
-            and str(error) == "'NoneType' object has no attribute 'id'"):
+    # server command used in DMs
+    if (isinstance(error, AttributeError) and ctx.guild is None and str(error) == "'NoneType' object has no attribute 'id'"):
         message = "This command can only be used in a server"
 
+    # command invocation errors
     elif isinstance(error, commands.CommandNotFound):
         pass
     elif isinstance(error, commands.CheckFailure):
@@ -59,6 +63,12 @@ async def on_command_error(ctx, error: Exception):
             message = "Invalid parameter: {}".format(error.args[0])
         else:
             message = "Invalid parameter"
+    
+    # no response to bot, close the script
+    elif isinstance(error, asyncio.TimeoutError):
+        message = '``` ```'
+
+    # misc errors
     elif isinstance(error, Exception):
         message = "Error: {}".format(error)
     else:
@@ -66,11 +76,31 @@ async def on_command_error(ctx, error: Exception):
         unknown = True
 
     if message is not None:
-        embed = discord.Embed(description=message, color=discord.Color.red())
-        await ctx.send(embed=embed)
+        await ctx.send(message)
 
     if unknown:
         raise error
+
+
+
+# ----#-   Context
+
+
+@bot.before_invoke
+async def before_any_command(ctx):
+    '''
+    Set up database connection
+    '''
+    ctx.database = redis.Redis(connection_pool=ctx.bot.pool)
+
+
+@bot.after_invoke
+async def after_any_command(ctx):
+    '''
+    Tear down database connection
+    '''
+    ctx.database.close()
+    ctx.database = None
 
 
 # ----#-   Commands
@@ -78,21 +108,53 @@ async def on_command_error(ctx, error: Exception):
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send('Ping time (ms): {0}'.format(round(bot.latency * 1000)))
+    await ctx.send('Ping time (ms): {0}'.format(round(ctx.bot.latency * 1000)))
 
 
-# ----#-
+pattern = re.compile(r"(?:(\d+|r)\|)?(.+)")
 
 
-def main(token: str):
-    bot.run(token)
+@bot.command()
+async def script(ctx, *script):
+    script = '_'.join(script).lower() + '.md'
+    with open(script, 'r') as f:
+        lines = f.readlines()
+    
+    l = len(lines)
+    i = 0
+    async with ctx.typing():
+        while i < l:
+            delay, text = pattern.match(lines[i])
+            if delay is None:
+                delay = 3
 
+            if delay.lower() == 'r':
+                def check(m):
+                    return (m.content == 'hello'
+                            and m.channel == ctx.channel
+                            and m.author == ctx.author)
+                await ctx.bot.wait_for('message', check=check, timeout=5*60)
+            else:
+                await asyncio.sleep(int(delay))
+
+            await ctx.send(text, tts=True)
+            i += 1
+    await ctx.send('``` ```')
+
+
+# ----#-   Run
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-t', dest='token', required=True, help='Disocrd bot token')
+    parser.add_argument('-t', dest=token', required=True, help='Discord bot token')
     parser.add_argument('-p', dest='prefix', default=bot.command_prefix, help='Override command prefix')
+    parser.add_argument('-d', dest='database', help='Redis connection string')
+
     args = parser.parse_args()
     bot.command_prefix = args.prefix
-    main(args.token)
+
+    pool = redis.ConnectionPool(host='localhost', port=6379, db=0)  # use args.database?
+    bot.database = pool
+
+    bot.run(args.token)
