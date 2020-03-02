@@ -73,7 +73,7 @@ async def on_command_error(ctx, error: Exception):
 
     # no response to bot, close the script
     elif isinstance(error, asyncio.TimeoutError):
-        message = '``` ```'
+        message = 'Timed out\n\n``` ```'
 
     # misc errors
     else:
