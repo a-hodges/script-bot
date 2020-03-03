@@ -168,7 +168,7 @@ async def script(ctx, *script: str):
         await ctx.send('`Already running a script`')
 
 
-@bot.command()
+@bot.command(aliases=['stop'])
 async def cancel(ctx):
     task = tasks.pop(context_key(ctx), None)
     if task is not None:
