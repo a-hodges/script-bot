@@ -96,6 +96,7 @@ async def before_any_command(ctx):
     Set up database connection
     '''
     ctx.conn = redis.Redis(connection_pool=ctx.bot.pool)
+    print(ctx.message)
 
 
 @bot.after_invoke
