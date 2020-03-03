@@ -188,6 +188,11 @@ async def list(ctx):
 
 
 @bot.command()
+async def br(ctx):
+    await ctx.send('``` ```')
+
+
+@bot.command()
 async def emoji(ctx, emoji: discord.Emoji):
     await ctx.send(':{}:{}'.format(emoji.name, emoji.id))
     if not emoji.is_usable():
