@@ -123,11 +123,9 @@ async def run_script(ctx, lines):
     def check(m):
         return m.channel == ctx.channel and m.author == ctx.author
 
-    l = len(lines)
-    i = 0
     async with ctx.typing():
-        while i < l:
-            match = pattern.match(lines[i])
+        for line in lines:
+            match = pattern.match(line)
             if match is not None:
                 delay, text = match.groups()
 
@@ -144,8 +142,6 @@ async def run_script(ctx, lines):
                     await asyncio.sleep(int(default_delay))
                 else:
                     await asyncio.sleep(int(delay))
-
-            i += 1
 
     tasks.pop(context_key(ctx), None)
 
