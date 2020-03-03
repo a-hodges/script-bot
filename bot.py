@@ -44,9 +44,13 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error: Exception):
+    global tasks
     unknown = False
     message = None
-    tasks.pop(context_key(ctx), None)
+    task = tasks.pop(context_key(ctx), None)
+    if task:
+        task.cancel()
+
     if (isinstance(error, commands.CommandInvokeError)):
         error = error.original
 
@@ -121,6 +125,7 @@ default_delay = '1'
 
 
 async def run_script(ctx, lines):
+    global tasks
     def check(m):
         return m.channel == ctx.channel and m.author == ctx.author
 
@@ -144,6 +149,7 @@ async def run_script(ctx, lines):
                 else:
                     await asyncio.sleep(int(delay))
 
+    # should pop self off the task list
     tasks.pop(context_key(ctx), None)
 
     await ctx.send('``` ```')
@@ -151,6 +157,8 @@ async def run_script(ctx, lines):
 
 @bot.group(invoke_without_command=True)
 async def script(ctx, *script: str):
+    global tasks
+
     script = '_'.join(script).lower()
     lines = ctx.conn.hget('scripts', script)
 
@@ -163,7 +171,7 @@ async def script(ctx, *script: str):
     lines = lines.split('\n')
 
     key = context_key(ctx)
-    if key not in tasks:
+    if not tasks.get(key):
         tasks[key] = bot.loop.create_task(run_script(ctx, lines))
     else:
         await ctx.send('`Already running a script`')
@@ -171,8 +179,10 @@ async def script(ctx, *script: str):
 
 @bot.command(aliases=['stop'])
 async def cancel(ctx):
+    global tasks
+
     task = tasks.pop(context_key(ctx), None)
-    if task is not None:
+    if task:
         task.cancel()
         await ctx.send('`Cancelled`')
     else:
