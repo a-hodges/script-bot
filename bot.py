@@ -190,6 +190,7 @@ async def list(ctx):
 @bot.command()
 async def br(ctx):
     await ctx.send('``` ```')
+    await ctx.message.delete()
 
 
 @bot.command()
